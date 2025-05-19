@@ -1,0 +1,88 @@
+
+Step-by-Step Guide: Create an Azure Service Principal for GitHub Actions
+
+==================================================
+Step 1: Log in to Azure
+==================================================
+
+Open PowerShell or Azure CLI and log in:
+
+    az login
+
+This will open a browser for login. Choose the correct subscription if you have multiple.
+
+==================================================
+Step 2: Set Your Azure Subscription (Optional)
+==================================================
+
+If you have more than one subscription, select the correct one:
+
+    az account set --subscription "Your Subscription Name or ID"
+
+==================================================
+Step 3: Create the Service Principal
+==================================================
+
+Replace GITHUB-SP with your desired name and set the appropriate role and scope:
+
+    az ad sp create-for-rbac \
+      --name "GITHUB-SP" \
+      --role contributor \
+      --scopes /subscriptions/<SUBSCRIPTION_ID> \
+      --sdk-auth
+
+To find your subscription ID:
+
+    az account show --query id -o tsv
+
+This command will output a JSON object similar to:
+
+    {
+      "clientId": "...",
+      "clientSecret": "...",
+      "subscriptionId": "...",
+      "tenantId": "...",
+      ...
+    }
+
+IMPORTANT: Keep this JSON safe — it is your Service Principal credential.
+
+==================================================
+Step 4: Add the Secret to GitHub
+==================================================
+
+1. Go to your GitHub repository.
+2. Navigate to: Settings > Secrets and variables > Actions > New repository secret
+3. Add a new secret:
+   - Name: AZURE_CREDENTIALS
+   - Value: Paste the entire JSON output from Step 3
+
+==================================================
+Step 5: Use in GitHub Actions
+==================================================
+
+Example GitHub Actions workflow snippet (.github/workflows/deploy.yml):
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: actions/checkout@v3
+
+          - name: Azure Login
+            uses: azure/login@v1
+            with:
+              creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+          - name: Azure CLI Script
+            run: az group list
+
+After logging in, you can run any Azure CLI commands or deploy using tools like bicep, terraform, or arm.
+
+==================================================
+Security Tips
+==================================================
+
+- Do not share the JSON.
+- Use resource group scope instead of full subscription if possible.
+- Use read-only roles if your workflow only needs read access.
