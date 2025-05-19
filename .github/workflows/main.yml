@@ -23,3 +23,9 @@ jobs:
         azcliversion: latest
         inlineScript: |
           az account show
+
+    - name: Deploy Bicep file to Azure
+      run: |
+        az deployment sub create \
+          --location australiaeast \
+          --template-file main.bicep
