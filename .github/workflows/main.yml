@@ -28,4 +28,4 @@ jobs:
       run: |
         az deployment sub create \
           --location australiaeast \
-          --template-file main.bicep
+          --template-file MyDevOpsJourney/19/05/25 - My Azure Subscription Setup/azure_vm_01.bicep
