@@ -1,0 +1,73 @@
+Step-by-Step Guide: Create an Outlook Account & Sign Up for Free Azure Subscription
+
+==================================================
+STEP 1: Create an Outlook (Microsoft) Account
+==================================================
+
+1. Go to the sign-up page:
+   https://signup.live.com
+
+2. Enter an email address:
+   - Click “Get a new email address” if you want a new Outlook email.
+   - Choose either @outlook.com or @hotmail.com as the domain.
+   - Example: ashmitcloud@outlook.com
+
+3. Create a strong password:
+   - Make sure it includes uppercase, lowercase, numbers, and special characters.
+
+4. Enter your details:
+   - First name and last name
+   - Country/region: Select Australia
+   - Date of birth
+
+5. Verify your identity:
+   - Microsoft may ask you to solve a CAPTCHA or send a code to a mobile number.
+
+6. Complete the setup:
+   - Once verified, you now have a Microsoft (Outlook) account.
+
+==================================================
+STEP 2: Sign up for Free Azure Subscription
+==================================================
+
+1. Go to: https://azure.microsoft.com/free
+
+2. Click on "Start free"
+
+3. Sign in with your new Outlook account:
+   - Use the email and password you just created.
+
+4. Verify your identity with a phone number:
+   - Microsoft will send a text or call to verify you're a real person.
+
+5. Provide credit card information:
+   - Required to validate your identity (you won’t be charged unless you explicitly upgrade).
+   - Make sure the billing country is Australia and details match your card.
+
+6. Agree to the terms and conditions:
+   - Tick the checkboxes for Microsoft Agreement and communications.
+
+7. Click on "Sign up":
+   - The system will set up your Free Azure Account.
+
+==================================================
+What You Get with the Free Azure Account (as of May 2025)
+==================================================
+
+- $200 AUD of Azure credit valid for 30 days
+- 12 months of free tier services (e.g., Linux VMs, Blob Storage, Azure SQL)
+- Always free services like:
+  - Azure Functions
+  - App Service (limited usage)
+  - 5GB of Blob Storage (LRS)
+  - 250GB SQL Database (S0 tier for 12 months)
+
+==================================================
+After You’re In
+==================================================
+
+- Go to the Azure Portal: https://portal.azure.com
+- Explore services like:
+  - Azure Virtual Machines (VMs)
+  - Azure App Services
+  - Azure DevOps (visit https://dev.azure.com – same login)
