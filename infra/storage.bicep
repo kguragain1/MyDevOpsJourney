@@ -1,10 +1,10 @@
-targetScope = 'resourceGroup'
-
+// storage.bicep
+param location string
 param storageAccountName string
 
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: storageAccountName
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'Standard_LRS'
   }
