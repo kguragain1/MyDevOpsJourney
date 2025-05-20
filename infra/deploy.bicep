@@ -1,6 +1,8 @@
 param location string
 param resourceGroupName string
 param storageAccountName string
+targetScope = 'subscription'
+
 
 module rg 'rg.bicep' = {
   name: 'createRG'
