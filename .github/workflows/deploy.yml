@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy Bicep with Params
         run: |
-          az deployment sub create \
-            --location australiaeast \
-            --template-file 19.05.25_MyAzureSubscription/storage_account.bicep \
-            --parameters 19.05.25_MyAzureSubscription/storage_account.bicepparam
+          az deployment group create \
+          --resource-group rg-aueast-ash-01 \
+          --template-file 19.05.25_MyAzureSubscription/storage_account.bicep \
+          --parameters 19.05.25_MyAzureSubscription/storage_account.bicepparam
