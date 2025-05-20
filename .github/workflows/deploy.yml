@@ -1,29 +1,26 @@
-# File: .github/workflows/workflow.yml
+name: Deploy Bicep Using .bicepparam
 
 on:
-  workflow_dispatch:
-
-name: Run Azure Login With a Service Principal Secret
+  push:
+    branches:
+      - main
 
 jobs:
-
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - uses: azure/login@v2
-      with:
-        creds: ${{ secrets.AZURE_SECRET}}
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_SECRET }}
 
-    - name: Azure CLI script
-      uses: azure/cli@v2
-      with:
-        azcliversion: latest
-        inlineScript: |
-          az account show
-
-    - name: Deploy Bicep file to Azure
-      run: |
-        az deployment sub create \
-          --location australiaeast \
-          --template-file MyDevOpsJourney/19/05/25 - My Azure Subscription Setup/storage_account.bicep
+      - name: Deploy Bicep with Params
+        run: |
+          az deployment sub create \
+            --location australiaeast \
+            --template-file MyDevOpsJourney/19/05/25 - My Azure Subscription Setup/storage_account.bicep \
+            --parameters MyDevOpsJourney/19/05/25 - My Azure Subscription Setup/storage_account.bicepparam
