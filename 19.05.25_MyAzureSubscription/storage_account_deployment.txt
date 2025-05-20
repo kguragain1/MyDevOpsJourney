@@ -1,0 +1,129 @@
+
+Azure DevOps Project Guide: Deploying a Storage Account with Bicep & GitHub Actions
+
+Objective
+---------
+Deploy an Azure Storage Account to a manually created Resource Group using:
+- Bicep for Infrastructure as Code (IaC)
+- GitHub Actions for automation
+
+Prerequisites
+-------------
+Local Setup:
+- Azure Subscription
+- Azure CLI installed & logged in (az login)
+- Visual Studio Code installed
+- Bicep CLI installed (az bicep install)
+- GitHub account + repository created
+
+Project Folder Structure:
+MyDevOpsJourney/
+├── 19.05.25_MyAzureSubscription/
+│   ├── storage_account.bicep
+│   └── storage_account.bicepparam
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+
+Step 1: Create the Resource Group
+---------------------------------
+Manually create the RG:
+az group create --name rg-aueast-ash-01 --location australiaeast
+
+Step 2: Create Bicep Template
+-----------------------------
+File: storage_account.bicep
+param storageAccountName string
+param resourceGroupName string
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: storageAccountName
+  location: resourceGroup().location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {}
+}
+
+Step 3: Define Bicep Parameters
+-------------------------------
+File: storage_account.bicepparam
+using './storage_account.bicep'
+
+param storageAccountName = 'stdevaueash01'
+param resourceGroupName = 'rg-aueast-ash-01'
+
+Step 4: Set Up GitHub Action
+----------------------------
+File: .github/workflows/deploy.yml
+name: Deploy Storage Account
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repo
+      uses: actions/checkout@v3
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy Storage Account with Bicep
+      run: |
+        az deployment group create \
+          --resource-group rg-aueast-ash-01 \
+          --template-file 19.05.25_MyAzureSubscription/storage_account.bicep \
+          --parameters 19.05.25_MyAzureSubscription/storage_account.bicepparam
+
+Step 5: Create GitHub Secret
+----------------------------
+1. Go to GitHub > Your Repo > Settings > Secrets and variables > Actions
+2. Create a secret named: AZURE_CREDENTIALS
+3. Paste JSON from this CLI command:
+az ad sp create-for-rbac --name "my-gh-action" --role contributor \
+  --scopes /subscriptions/<your-subscription-id> \
+  --sdk-auth
+
+Step 6: Trigger Deployment
+--------------------------
+Push changes to main:
+git add .
+git commit -m "Initial storage account deployment"
+git push origin main
+
+Check GitHub Actions tab to verify the run.
+
+Troubleshooting Guide
+---------------------
+Issue: The storage account name is not valid
+Fix: Use lowercase, 3–24 characters, no dashes
+
+Issue: Target scope "resourceGroup" does not match
+Fix: Use az deployment group create not sub
+
+Issue: Existing resource "rg" is declared but never used
+Fix: Remove unused resource rg block
+
+Issue: Deployment fails in GitHub
+Fix: Check AZURE_CREDENTIALS and repo structure
+
+Clean-Up (Optional)
+-------------------
+az group delete --name rg-aueast-ash-01 --yes --no-wait
+
+You're Done!
+------------
+You’ve:
+- Written IaC in Bicep
+- Parameterised it for reuse
+- Automated deployment via GitHub Actions
+- Learned how to debug common blockers
