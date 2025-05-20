@@ -22,5 +22,5 @@ jobs:
         run: |
           az deployment sub create \
             --location australiaeast \
-            --template-file MyDevOpsJourney/19.05.25_MyAzureSubscription/storage_account.bicep \
-            --parameters MyDevOpsJourney/19.05.25_MyAzureSubscription/storage_account.bicepparam
+            --template-file 19.05.25_MyAzureSubscription/storage_account.bicep \
+            --parameters 19.05.25_MyAzureSubscription/storage_account.bicepparam
