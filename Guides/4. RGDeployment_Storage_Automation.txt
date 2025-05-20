@@ -1,0 +1,190 @@
+# ✅ Step-by-Step Guide: Project 2
+**Deploying Resource Group + Storage Account Using Bicep Modules and GitHub Actions**
+
+---
+
+## 🗂️ Folder & File Structure (Where to Put Your Files)
+
+Create your files in the following structure to keep everything organised:
+
+```
+MyDevOpsJourney/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml                 # GitHub Actions workflow
+├── infra/
+│   ├── deploy.bicep                   # Main file that connects everything
+│   ├── storage.bicep                  # File for creating the storage account
+│   └── deploy.bicepparam             # Parameter values for deployment
+└── README.md                         # (Optional) Project notes or instructions
+```
+
+---
+
+## 🔧 Step 1: Create Infrastructure as Code Files
+
+These files tell Azure what you want to create. You write them once, and Azure does the work every time.
+
+### 📄 `infra/deploy.bicep` — *Main Deployment File*
+This is the main file that:
+- Tells Azure we want to work at the subscription level (so we can create a Resource Group)
+- Passes parameters like location, resource group name, and storage name
+- Calls another Bicep file (`storage.bicep`) to create a storage account
+
+```bicep
+targetScope = 'subscription'
+
+param location string
+param resourceGroupName string
+param storageAccountName string
+
+resource rg 'Microsoft.Resources/resourceGroups@2022-09-01' = {
+  name: resourceGroupName
+  location: location
+}
+
+module storageModule 'storage.bicep' = {
+  name: 'deployStorage'
+  scope: resourceGroup(rg.name)
+  params: {
+    location: location
+    storageAccountName: storageAccountName
+  }
+}
+```
+
+### 📄 `infra/storage.bicep` — *Storage Account Module*
+This is a smaller file that knows how to create a storage account.
+
+```bicep
+param location string
+param storageAccountName string
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
+  name: storageAccountName
+  location: location
+  sku: {
+    name: 'Standard_LRS'
+  }
+  kind: 'StorageV2'
+  properties: {}
+}
+```
+
+### 📄 `infra/deploy.bicepparam` — *Parameter Values*
+This file gives actual values to use when running the Bicep templates.
+
+```bicep
+param location = 'australiaeast'
+param resourceGroupName = 'rg-aueast-ash-auto-01'
+param storageAccountName = 'stashmit01devops'
+```
+
+📝 *Note:* Storage account names must be **lowercase**, **3–24 characters**, and **globally unique**.
+
+---
+
+## 🧪 Step 2: Test the Deployment Locally (Optional)
+
+Before pushing to GitHub, test that everything works on your machine:
+
+```bash
+az deployment sub create \
+  --location australiaeast \
+  --template-file infra/deploy.bicep \
+  --parameters infra/deploy.bicepparam
+```
+
+What this does:
+- Tells Azure to run the Bicep files
+- Deploys the resource group and storage account
+- Helps you catch problems early
+
+---
+
+## ⚙️ Step 3: Automate with GitHub Actions
+
+This will automatically deploy your infrastructure every time you push to GitHub.
+
+### 📄 `.github/workflows/deploy.yml`
+This file sets up automation using GitHub Actions.
+
+```yaml
+name: Deploy Infra
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy Bicep Template
+        run: |
+          az deployment sub create \
+            --location australiaeast \
+            --template-file infra/deploy.bicep \
+            --parameters infra/deploy.bicepparam
+```
+
+👀 What this does:
+- Triggers the pipeline when code is pushed
+- Logs into Azure using credentials you stored in GitHub secrets
+- Runs the same command as you did locally to deploy
+
+🔐 **Set up GitHub Secret:**
+- Go to your GitHub repo > Settings > Secrets > Actions
+- Create a secret called `AZURE_CREDENTIALS`
+
+Follow this guide to generate the secret: https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-cli%2Clinux
+
+---
+
+## 🚀 Step 4: Deploy Automatically
+
+- Push your code to the `main` branch
+- Go to GitHub > Actions tab > See your deployment running
+
+Azure will:
+- Create a Resource Group
+- Create a Storage Account inside that group
+
+---
+
+## ✅ Step 5: Verify in Azure
+
+Login to [Azure Portal](https://portal.azure.com):
+- Check **Resource Groups** for `rg-aueast-ash-auto-01`
+- Open the resource group to find your storage account `stashmit01devops`
+
+---
+
+## 🧹 Step 6: Clean Up (Optional)
+
+To remove everything and avoid charges:
+```bash
+az group delete --name rg-aueast-ash-auto-01 --yes --no-wait
+```
+
+---
+
+## 🧠 Tips for Beginners
+
+- Storage names must be **lowercase**, **3–24 chars**, **no spaces or special symbols**
+- Always double-check your parameter values
+- Use `targetScope = 'subscription'` only when creating resource groups
+- Break down logic into modules (e.g., separate Bicep files)
+- Use GitHub Actions to deploy automatically instead of doing it manually every time
+
+---
+
+Let me know if you want this saved as a `.txt` file or converted into a PDF.
