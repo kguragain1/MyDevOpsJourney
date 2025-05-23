@@ -26,6 +26,7 @@ jobs:
           --location eastus \
           --template-file infra/resourceGroup.bicep
 
+
     - name: Deploy VNets to Resource Group
       run: |
         az deployment group create \
