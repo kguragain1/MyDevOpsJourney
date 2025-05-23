@@ -1,0 +1,249 @@
+Project 3: Deploy Contoso Virtual Networks Using Bicep and GitHub Actions
+=======================================================================
+
+Overview
+--------
+You will create:
+- A resource group at the subscription scope
+- Three virtual networks (VNets) with multiple subnets inside that resource group
+- Automate deployment with GitHub Actions
+
+Prerequisites
+-------------
+- Azure subscription
+- GitHub repo for your infrastructure code
+- Azure Service Principal for GitHub Actions (stored as AZURE_CREDENTIALS secret)
+- Azure CLI (optional, for manual deployments)
+
+File Structure
+--------------
+/infra
+  ├── resourceGroup.bicep
+  ├── coreServicesVnet.bicep
+  ├── manufacturingVnet.bicep
+  ├── researchVnet.bicep
+  └── main.bicep
+.github
+  └── workflows
+       └── deploy-infra.yml
+
+Step 1: Create the Resource Group
+---------------------------------
+Since resource groups are a subscription-level resource, your Bicep file must have:
+
+// infra/resourceGroup.bicep
+targetScope = 'subscription'
+
+param resourceGroupName string = 'ContosoResourceGroup'
+param location string = 'eastus'
+
+resource rg 'Microsoft.Resources/resourceGroups@2023-01-01' = {
+  name: resourceGroupName
+  location: location
+}
+
+Explanation:
+- targetScope = 'subscription' specifies this Bicep file deploys at subscription scope (not resource group scope).
+- Creates a resource group called ContosoResourceGroup in East US.
+
+Step 2: Define the Virtual Networks
+-----------------------------------
+
+2a. CoreServicesVnet
+
+// infra/coreServicesVnet.bicep
+param location string = 'eastus'
+
+resource coreServicesVnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
+  name: 'CoreServicesVnet'
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        '10.20.0.0/16'
+      ]
+    }
+    subnets: [
+      {
+        name: 'GatewaySubnet'
+        properties: {
+          addressPrefix: '10.20.0.0/27'
+        }
+      }
+      {
+        name: 'SharedServicesSubnet'
+        properties: {
+          addressPrefix: '10.20.10.0/24'
+        }
+      }
+      {
+        name: 'DatabaseSubnet'
+        properties: {
+          addressPrefix: '10.20.20.0/24'
+        }
+      }
+      {
+        name: 'PublicWebServiceSubnet'
+        properties: {
+          addressPrefix: '10.20.30.0/24'
+        }
+      }
+    ]
+  }
+}
+
+2b. ManufacturingVnet
+
+// infra/manufacturingVnet.bicep
+param location string = 'westeurope'
+
+resource manufacturingVnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
+  name: 'ManufacturingVnet'
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        '10.30.0.0/16'
+      ]
+    }
+    subnets: [
+      {
+        name: 'ManufacturingSystemSubnet'
+        properties: {
+          addressPrefix: '10.30.10.0/24'
+        }
+      }
+      {
+        name: 'SensorSubnet1'
+        properties: {
+          addressPrefix: '10.30.20.0/24'
+        }
+      }
+      {
+        name: 'SensorSubnet2'
+        properties: {
+          addressPrefix: '10.30.21.0/24'
+        }
+      }
+      {
+        name: 'SensorSubnet3'
+        properties: {
+          addressPrefix: '10.30.22.0/24'
+        }
+      }
+    ]
+  }
+}
+
+2c. ResearchVnet
+
+// infra/researchVnet.bicep
+param location string = 'southeastasia'
+
+resource researchVnet 'Microsoft.Network/virtualNetworks@2023-02-01' = {
+  name: 'ResearchVnet'
+  location: location
+  properties: {
+    addressSpace: {
+      addressPrefixes: [
+        '10.40.0.0/16'
+      ]
+    }
+    subnets: [
+      {
+        name: 'ResearchSystemSubnet'
+        properties: {
+          addressPrefix: '10.40.0.0/24'
+        }
+      }
+    ]
+  }
+}
+
+Step 3: Main Bicep File to Deploy All VNets in Resource Group
+-------------------------------------------------------------
+
+// infra/main.bicep
+param locationCore string = 'eastus'
+param locationManufacturing string = 'westeurope'
+param locationResearch string = 'southeastasia'
+
+module coreServices './coreServicesVnet.bicep' = {
+  name: 'deployCoreServicesVnet'
+  params: {
+    location: locationCore
+  }
+}
+
+module manufacturing './manufacturingVnet.bicep' = {
+  name: 'deployManufacturingVnet'
+  params: {
+    location: locationManufacturing
+  }
+}
+
+module research './researchVnet.bicep' = {
+  name: 'deployResearchVnet'
+  params: {
+    location: locationResearch
+  }
+}
+
+Step 4: GitHub Actions Workflow
+-------------------------------
+
+# .github/workflows/deploy-infra.yml
+name: Deploy Contoso Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Login to Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Create Resource Group (subscription scope)
+        run: |
+          az deployment sub create \
+            --location eastus \
+            --template-file infra/resourceGroup.bicep \
+            --parameters resourceGroupName='ContosoResourceGroup' location='eastus'
+
+      - name: Deploy Virtual Networks (resource group scope)
+        run: |
+          az deployment group create \
+            --resource-group ContosoResourceGroup \
+            --template-file infra/main.bicep
+
+Step 5: How to Verify
+--------------------
+1. Go to the Azure portal.
+2. Navigate to Resource groups, select ContosoResourceGroup.
+3. Check for the VNets: CoreServicesVnet, ManufacturingVnet, and ResearchVnet.
+4. Inside each VNet, verify the subnets match the IP ranges and names specified.
+
+Step 6: Cleanup (optional)
+--------------------------
+If you want to delete everything and start over, run:
+
+az group delete --name ContosoResourceGroup --yes --no-wait
+
+Summary of What We Did:
+----------------------
+- Created a resource group at subscription scope via Bicep with targetScope='subscription'
+- Defined three VNets with proper IP address spaces and multiple subnets inside each
+- Used a main Bicep file to modularize and deploy all VNets in one deployment
+- Automated deployment using GitHub Actions with an Azure Service Principal
+- Provided verification and cleanup steps
+
