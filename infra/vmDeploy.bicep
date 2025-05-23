@@ -4,7 +4,7 @@ param adminUsername string = 'azureuser'  // admin username for VMs
 @secure()
 param adminPassword string = 'P@ssw0rd123!'  // admin password for VMs
 param virtualNetworkName string = 'CoreServicesVnet'
-param subnetName string = 'PublicWebServiceSubnet'  // subnet for VMs
+param subnetName string = 'DatabaseSubnet'  // subnet for VMs
 param location string = resourceGroup().location
 
 var vmNames = [
