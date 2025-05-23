@@ -1,5 +1,5 @@
 targetScope = 'resourceGroup'
-
+param resourceGroupName string = 'ContosoResourceGroup'
 param adminUsername string
 @secure()
 param adminPassword string

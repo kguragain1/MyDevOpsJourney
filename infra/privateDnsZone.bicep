@@ -1,6 +1,6 @@
 targetScope = 'resourceGroup'
 
-param resourceGroupName string
+param resourceGroupName string = 'ContosoResourceGroup'
 param dnsZoneName string = 'contoso.com'
 
 resource privateDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' = {
