@@ -45,4 +45,3 @@ jobs:
         az deployment group create \
           --resource-group ContosoResourceGroup \
           --template-file infra/vmDeploy.bicep
-          --parameters adminUsername='admin' adminPassword='Kom@l123'
