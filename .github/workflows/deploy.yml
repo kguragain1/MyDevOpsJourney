@@ -32,3 +32,17 @@ jobs:
         az deployment group create \
           --resource-group ContosoResourceGroup \
           --template-file infra/main.bicep
+
+
+    - name: Deploy Private DNS Zones
+      run: |
+        az deployment group create \
+          --resource-group ContosoResourceGroup \
+          --template-file infra/privateDnsZone.bicep
+    
+    - name: Deploy Virtual Machines
+      run: |
+        az deployment group create \
+          --resource-group ContosoResourceGroup \
+          --template-file infra/vmDeploy.bicep
+          --parameters adminUsername='admin' adminPassword='Kom@l123'
